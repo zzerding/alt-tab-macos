@@ -1,0 +1,42 @@
+name: Build free version (10.12.0)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # chore(release): 10.12.0 — last free version; 11.0.0 introduced Pro licensing
+          ref: 317a485bcb090bf2b29e3f78872218f0099e1d62
+
+      - name: Select Xcode (fall back to image default if pinned one is gone)
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.0.1.app/Contents/Developer 2>/dev/null || true
+          xcodebuild -version
+
+      - name: Stamp version into Info.plist
+        run: |
+          echo "10.12.0" > VERSION.txt
+          APPCENTER_SECRET= FEEDBACK_TOKEN= scripts/replace_environment_variables_in_app.sh
+
+      - name: Build Release (ad-hoc signed, no hardened runtime, no notarization)
+        run: |
+          xcodebuild \
+            -workspace alt-tab-macos.xcworkspace \
+            -scheme Release \
+            -configuration Release \
+            -derivedDataPath DerivedData \
+            CODE_SIGN_IDENTITY=- \
+            OTHER_CODE_SIGN_FLAGS=--timestamp=none \
+            build
+
+      - name: Zip app
+        run: cd DerivedData/Build/Products/Release && ditto -c -k --sequesterRsrc --keepParent AltTab.app AltTab-10.12.0-free.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AltTab-10.12.0-free
+          path: DerivedData/Build/Products/Release/AltTab-10.12.0-free.zip
