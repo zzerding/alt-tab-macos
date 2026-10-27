@@ -33,6 +33,12 @@ jobs:
             OTHER_CODE_SIGN_FLAGS=--timestamp=none \
             build
 
+      - name: Re-sign bundle ad-hoc (pod frameworks are unsigned, deep-verify fails otherwise)
+        run: codesign --force --deep --sign - --preserve-metadata=entitlements DerivedData/Build/Products/Release/AltTab.app
+
+      - name: Verify signature
+        run: codesign --verify --deep --strict DerivedData/Build/Products/Release/AltTab.app
+
       - name: Zip app
         run: cd DerivedData/Build/Products/Release && ditto -c -k --sequesterRsrc --keepParent AltTab.app AltTab-10.12.0-free.zip
 
