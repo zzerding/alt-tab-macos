@@ -20,7 +20,7 @@ jobs:
       - name: Stamp version into Info.plist
         run: |
           echo "10.12.0" > VERSION.txt
-          APPCENTER_SECRET= FEEDBACK_TOKEN= scripts/replace_environment_variables_in_app.sh
+          VERSION_FILE=VERSION.txt APPCENTER_SECRET= FEEDBACK_TOKEN= scripts/replace_environment_variables_in_app.sh
 
       - name: Build Release (ad-hoc signed, no hardened runtime, no notarization)
         run: |
